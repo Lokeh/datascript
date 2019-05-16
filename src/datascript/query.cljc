@@ -888,7 +888,16 @@
       (vswap! query-cache assoc q qp)
       qp)))
 
+(defn assert-db [q inputs]
+  (if (map? q)
+    (assert (boolean (or (some db/db? (:args q))
+                         (some db/db? inputs))))
+    (assert (boolean (some db/db? inputs)))))
+
 (defn q [q & inputs]
+  #?(:clj (assert-db q inputs)
+     :cljs (when js/goog.DEBUG
+             (assert-db q inputs)))
   (let [parsed-q      (memoized-parse-query q)
         find          (:qfind parsed-q)
         find-elements (dp/find-elements find)
